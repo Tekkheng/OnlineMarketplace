@@ -45,10 +45,10 @@ Catatan:
 Untuk menginstal dan menjalankan seluruh layanan, ikuti langkah-langkah sederhana berikut:
 1. Clone Repositori Buka terminal Anda dan clone repositori ini ke direktori lokal Anda:
 Bash
-git clone https://github.com/Tekkheng/OnlineMarketplaceMicroservices.git
+git clone https://github.com/Tekkheng/OnlineMarketplace.git
 2. Masuk ke Direktori Proyek
 Bash
-cd OnlineMarketplaceMicroservices
+cd OnlineMarketplace
 3. Jalankan dengan Docker Compose Jalankan perintah berikut dari direktori root proyek (folder yang berisi file docker-compose.yml). Perintah ini akan membangun image untuk setiap layanan dan menjalankan semua container secara bersamaan.
 
 docker-compose up --build
