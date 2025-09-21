@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14-alpine
+    container_name: marketplace_db
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  userservice:
+    build:
+      context: ./UserService
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8080"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=users_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+
+  productservice:
+    build:
+      context: ./ProductService
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8080"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=products_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+
+  cartservice:
+    build:
+      context: ./CartService
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8080"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=carts_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+
+volumes:
+  postgres_data:
