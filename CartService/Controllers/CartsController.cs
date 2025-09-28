@@ -13,7 +13,10 @@ namespace CartService.Controllers;
 public class CartsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    public CartsController(IMediator mediator) => _mediator = mediator;
+    public CartsController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
 
     [HttpGet]
     public async Task<ActionResult<CartResponse>> GetCart()

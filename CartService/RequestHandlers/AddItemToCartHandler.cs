@@ -27,96 +27,34 @@ public class AddItemToCartHandler : IRequestHandler<AddToCartRequest, AddItemToC
 
     public async Task<AddItemToCartResponse> Handle(AddToCartRequest request, CancellationToken cancellationToken)
     {
-        if (request.Quantity <= 0)
-        {
-            return new AddItemToCartResponse
-            {
-                Success = false,
-                Message = "Quantity must be greater than 0."
-            };
-        }
+        var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return new AddItemToCartResponse
-            {
-                Success = false,
-                Message = "User is not authenticated."
-            };
-        }
+        var client = _httpClientFactory.CreateClient("ProductService");
+        var productResponse = await client.GetAsync($"/api/products/{request.ProductId}", cancellationToken);
 
-        ProductInfoResponse? product = null;
-        try
-        {
-            var productClient = _httpClientFactory.CreateClient("ProductService");
-            var productResponse = await productClient.GetAsync($"/api/products/{request.ProductId}", cancellationToken);
+        if (!productResponse.IsSuccessStatusCode)
+            throw new Exception("Product not found or Product Service unavailable.");
 
-            if (!productResponse.IsSuccessStatusCode)
-            {
-                return new AddItemToCartResponse
-                {
-                    Success = false,
-                    Message = "Product not found or Product Service unavailable."
-                };
-            }
-
-            var content = await productResponse.Content.ReadAsStringAsync(cancellationToken);
-
-            var wrapper = JsonSerializer.Deserialize<ProductInfoWrapper>(
-                content,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-            product = wrapper?.Data;
-        }
-        catch (Exception ex)
-        {
-            return new AddItemToCartResponse
-            {
-                Success = false,
-                Message = $"An error occurred while contacting Product Service: {ex.Message}"
-            };
-        }
-
-        if (product == null || product.Id <= 0)
-        {
-            return new AddItemToCartResponse
-            {
-                Success = false,
-                Message = "Invalid ProductId."
-            };
-        }
+        var content = await productResponse.Content.ReadAsStringAsync(cancellationToken);
+        var wrapper = JsonSerializer.Deserialize<ProductInfoWrapper>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var product = wrapper?.Data ?? throw new Exception("Invalid ProductId.");
 
         if (product.Stock < request.Quantity)
-        {
-            return new AddItemToCartResponse
-            {
-                Success = false,
-                Message = "Insufficient product stock."
-            };
-        }
+            throw new Exception("Insufficient product stock.");
 
-        var cart = await _context.Carts
-            .Include(c => c.Items)
+        var cart = await _context.Carts.Include(c => c.Items)
             .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
 
         if (cart == null)
         {
-            cart = new Cart
-            {
-                UserId = userId,
-                Items = new List<CartItem>()
-            };
+            cart = new Cart { UserId = userId, Items = new List<CartItem>() };
             _context.Carts.Add(cart);
         }
 
         var cartItem = cart.Items.FirstOrDefault(i => i.ProductId == request.ProductId);
         if (cartItem != null)
-        {
             cartItem.Quantity += request.Quantity;
-        }
         else
-        {
             cart.Items.Add(new CartItem
             {
                 ProductId = product.Id,
@@ -124,14 +62,9 @@ public class AddItemToCartHandler : IRequestHandler<AddToCartRequest, AddItemToC
                 Price = product.Price,
                 Quantity = request.Quantity
             });
-        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new AddItemToCartResponse
-        {
-            Success = true,
-            Message = "Item successfully added to cart."
-        };
+        return new AddItemToCartResponse { Success = true, Message = "Item successfully added to cart." };
     }
 }

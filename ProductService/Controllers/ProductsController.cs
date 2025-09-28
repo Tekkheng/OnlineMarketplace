@@ -11,7 +11,10 @@ namespace ProductService.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    public ProductsController(IMediator mediator) => _mediator = mediator;
+    public ProductsController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
 
     [HttpGet]
     [AllowAnonymous]

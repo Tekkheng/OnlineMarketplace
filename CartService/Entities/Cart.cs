@@ -2,7 +2,8 @@
 namespace CartService.Entities;
 public class Cart
 {
-    [Key] public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string UserId { get; set; } = string.Empty;
+    public string Status { get; set; } = "Pending";
     public List<CartItem> Items { get; set; } = new();
 }

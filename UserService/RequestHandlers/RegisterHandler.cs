@@ -1,10 +1,8 @@
-﻿using MailKit;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using UserService.Entities;
 using UserService.Models.RequestModels;
 using UserService.Models.ResponseModels;
-using UserService.Services;
 
 namespace UserService.RequestHandlers;
 
@@ -12,14 +10,11 @@ public class RegisterHandler : IRequestHandler<RegisterRequest, RegisterResponse
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly IEmailService _mailService;
 
-
-    public RegisterHandler(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IEmailService mailService)
+    public RegisterHandler(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        _mailService = mailService;
     }
 
     public async Task<RegisterResponse> Handle(RegisterRequest request, CancellationToken cancellationToken)
@@ -58,15 +53,6 @@ public class RegisterHandler : IRequestHandler<RegisterRequest, RegisterResponse
             await _roleManager.CreateAsync(new IdentityRole(request.Role));
 
         await _userManager.AddToRoleAsync(user, request.Role);
-
-        try
-        {
-            await _mailService.SendWelcomeEmailAsync(request.Email);
-        }
-        catch (Exception ex)
-        {
-
-        }
 
         return new RegisterResponse { Message = "User registered successfully!" };
     }

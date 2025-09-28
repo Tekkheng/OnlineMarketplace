@@ -2,6 +2,6 @@
 {
     public class CheckoutResponse : BaseResponse
     {
-        public string RedirectUrl { get; set; } = string.Empty;
+        public string PaymentUrl { get; set; } = string.Empty;
     }
 }

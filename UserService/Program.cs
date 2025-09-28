@@ -6,7 +6,6 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using UserService.Data;
 using UserService.Entities;
-using UserService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -39,7 +38,6 @@ builder.Services.AddAuthentication(options => {
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
-builder.Services.AddScoped<IEmailService, MailService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
